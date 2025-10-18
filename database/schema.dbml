@@ -1,0 +1,114 @@
+Table organizer {
+  event_year int [pk, ref: > event.year]
+  person_email varchar(32) [pk, ref: > person.email]
+  roles varchar(512) [not null, note: 'Comma-separated list of responsibilities']
+
+  Note: 'Tracks the roles of the madiSTEM organizers by year (M-N with event).'
+}
+
+Table person {
+  email varchar(32) [pk, note: 'Use email as the unique identifier for all people']
+  type varchar(32) [not null, note: 'Ex: student, faculty, other']
+  first_name varchar(32) [not null]
+  last_name varchar(32) [not null]
+  phone varchar(16)
+  department_code varchar(8) [not null, ref: > department.code]
+
+  Note: 'The super class entity for all types of people, with their basic information.'
+}
+
+Table department {
+  code varchar(8) [pk, note: 'Ex: CS']
+  name varchar(64) [not null]
+  auh_full_name varchar(32) [not null]
+  auh_email varchar(32) [not null]
+  college_code varchar(8) [not null, ref: > college.code]
+
+  Note: 'Needed for name lookups and thank-you emails.'
+}
+
+Table college {
+  code varchar(8) [pk, note: 'Ex: CISE']
+  name varchar(64) [not null]
+  dean_full_name varchar(32) [not null]
+  dean_email varchar(32) [not null]
+  dean_first_name varchar(32) [not null]
+
+  Note: 'Needed for name lookups and thank-you emails.'
+}
+
+Table event {
+  year int [pk, note: 'One event per year']
+  date date [not null, note: 'The exact date of the event']
+
+  Note: 'More attributes to be added later: guest speaker, theme, etc.'
+}
+
+Table person_workshop {
+  person_email varchar(32) [pk, ref: > person.email]
+  workshop_id int [pk, ref: > workshop.id]
+  role varchar(32) [not null, note: 'Ex: organizer, volunteer']
+
+  Note: 'Connects a person to a workshop with a specific role.'
+}
+
+Table workshop {
+  id int [pk, increment, note: 'Generated auto-increment ID because the title may be edited over time.  This ID is unique across years.']
+  state varchar(32) [not null, note: 'The state of the workshop -- proposed, accepted, file, etc.  The exact states are not fully defined.']
+  title varchar(64) [not null]
+  advertisement varchar(512) [note: 'The workshop description to be shown on the website.']
+  description varchar(1024) [note: 'The full description of the workshop maybe with much more detail than the advertisement.']
+  capacity int [note: 'The max number of students that can be accommodated in this workshop.']
+  computer_needs varchar(128)
+  room_needs varchar(128)
+  max_repeat int [note: 'The number of times this workshop can be offered during the day.']
+  parent_questions varchar(1024) [note: 'Follow-up information/questions for the attendee to share with their parents post event.']
+  other_information varchar(512) [note: 'Any other information about the workshop to be shared with the organizers.']
+  event_year int [not null, ref: > event.year, note: 'Not part of the key, but required.']
+  room_name varchar(32) [ref: > room.name, note: 'The room is assigned later in the process, so it can be null.']
+
+  Note: 'Holds all the workshop information.'
+}
+
+Table room {
+  name varchar(32) [pk, note: 'The short name of the room, like King 250']
+  type varchar(32) [not null, note: 'Ex: classroom, lab']
+  capacity int [not null]
+  notes varchar(64)
+
+  Note: 'Rooms on campus that may be used by madiSTEM.'
+}
+
+Table timeslot {
+  event_year int [pk, ref: > event.year]
+  id int [pk, note: 'The slots are numbered 1..N from earliest to latest']
+  name varchar(32) [not null, note: 'Ex: registration, lunch, speaker, workshops']
+  beg_time time [not null]
+  end_time time [not null]
+
+  Note: 'An event is divided into time slots -- these are the schedule for the day.'
+}
+
+Table workshop_timeslot {
+  workshop_id int [pk, ref: > workshop.id]
+  timeslot_event_year int [pk]
+  timeslot_id int [pk]
+
+  Note: 'Connects the workshop to slot M-N, because many workshops can be scheduled in the same slot.'
+}
+
+Ref: workshop_timeslot.(timeslot_event_year, timeslot_id) > timeslot.(event_year, id)
+
+Table room_feature {
+  room_name varchar(32) [pk, ref: > room.name]
+  feature_name varchar(32) [pk, ref: > feature.name]
+
+  Note: 'M-N connection between room and features (see https://www.lib.jmu.edu/tech-classrooms/).'
+}
+
+Table feature {
+  name varchar(32) [pk]
+  description varchar(128)
+
+  Note: 'Just to lookup some features like sink, computers, projector, etc.'
+}

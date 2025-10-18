@@ -1,0 +1,53 @@
+code,name,auh_full_name,auh_email,college_code
+ENG,Department of English,Rebecca Childs,childsrl@jmu.edu,CAL
+FLAN,"Department of Foreign Languages, Literatures and Cultures",Cynthia Chalupa,chalupcs@jmu.edu,CAL
+HIST,Department of History,David Dillard,dillarpd@jmu.edu,CAL
+JUST,Department of Justice Studies,Peggy Plass,plassms@jmu.edu,CAL
+PHIL,Department of Philosophy and Religion,Kenneth Pearce,pearcekl@jmu.edu,CAL
+POSC,Department of Political Science,Kerry Crawford,crawfokf@jmu.edu,CAL
+SCOM,School of Communication Studies,Lori Britt,brittll@jmu.edu,CAL
+SMAD,School of Media Arts and Design,Joe Hinshaw,hinshamj@jmu.edu,CAL
+SOCI,Department of Sociology and Anthropology,Liam Buckley,bucklelm@jmu.edu,CAL
+WRTC,"School of Writing, Rhetoric and Technical Communication",Michael Smith,smithmx@jmu.edu,CAL
+CSD,Department of Communication Sciences and Disorders,Ayasakanta Rout,routax@jmu.edu,CHBS
+HTH,Department of Health Sciences,Kirk Armstrong,armst2kj@jmu.edu,CHBS
+HTHP,Department of Health Professions,Kirk Armstrong,armst2kj@jmu.edu,CHBS
+KIN,Department of Kinesiology,Liz Edwards,edwardes@jmu.edu,CHBS
+NSG,School of Nursing,Melody Eaton,eatonmk@jmu.edu,CHBS
+PSYC,Department of Psychology,Jessica Salvatore,salvatja@jmu.edu,CHBS
+PSYC2,Department of Graduate Psychology,Robin Anderson,ander2rd@jmu.edu,CHBS
+SOWK,Department of Social Work,Simon Funge,fungesp@jmu.edu,CHBS
+CS,Department of Computer Science,Vetria Byrd,byrdvl@jmu.edu,CISE
+ENGR,Department of Engineering,Bayo Ogundipe,ogundiaa@jmu.edu,CISE
+GEOG,School of Integrated Sciences – Geography,Henry Way,wayha@jmu.edu,CISE
+IA,School of Integrated Sciences – Information Analysis,Henry Way,wayha@jmu.edu,CISE
+ISAT,School of Integrated Sciences – Integrated Science & Technology,Stephanie Stockwell,stockwsb@jmu.edu,CISE
+ACTG,School of Accounting,Alex Gabbin,gabbinal@jmu.edu,COB
+CIS,Department of Computer Information Systems & Business Analytics,Rhonda Syler,sylerra@jmu.edu,COB
+ECON,Department of Economics,Charlene Kalenkoski,kalenkcm@jmu.edu,COB
+FIN,Department of Finance and Business Law,Hui Sono,sonohh@jmu.edu,COB
+HM,"Hart School of Hospitality, Sport and Recreation Management",David Shonk,shonkdj@jmu.edu,COB
+IB,Department of International Business,Bud Clarke,clarkeix@jmu.edu,COB
+LEAD,School of Strategic Leadership Studies,Margaret Sloan,sloanmf@jmu.edu,COB
+MGT,Department of Management,David Peterson,peter2dr@jmu.edu,COB
+MKTG,Department of Marketing,Theresa Clarke,clarketb@jmu.edu,COB
+EERE,"Department of Early, Elementary and Reading Education",Joi Merritt,merritjd@jmu.edu,COE
+EFEX,Department of Educational Foundations and Exceptionalities,Dani Murray,murraydy@jmu.edu,COE
+LTLE,"Department of Learning, Technology and Leadership Education",Michelle Estes,estesmd@jmu.edu,COE
+MSCI,Department of Military Science,Andrew Bryant,bryantav@jmu.edu,COE
+MSME,"Department of Middle, Secondary and Mathematics Education",Katie Dredger,dredgemk@jmu.edu,COE
+BIO,Department of Biology,Kyle Seifert,seiferkx@jmu.edu,CSM
+CHEM,Department of Chemistry and Biochemistry,Linette Watkins,watkinlm@jmu.edu,CSM
+GEOL,Department of Geology and Environmental Science,Steve Leslie,lesliesa@jmu.edu,CSM
+MATH,Department of Mathematics and Statistics,Krishanan Ravi Shankar,shankakx@jmu.edu,CSM
+PHYS,Department of Physics and Astronomy,Christopher Hughes,hugheswc@jmu.edu,CSM
+ART,"School of Art, Design and Art History",Mi-Kyoung Lee,lee28mx@jmu.edu,CVPA
+DANC,School of Theatre and Dance – Dance,Ryan Corriston,corrisrp@jmu.edu,CVPA
+MUS,School of Music,John Allemeier,allemejm@jmu.edu,CVPA
+THEA,School of Theatre and Dance – Theater,Ben Lambert,lamberbc@jmu.edu,CVPA
+ACENG,Academic Engagement,Carolyn Schubert,schubecf@jmu.edu,LIB
+DATECH,"Discovery, Access and Technology",Bill Hartman,hartmacw@jmu.edu,LIB
+LIBADM,Libraries Administration,Stefanie Warlick,warlicse@jmu.edu,LIB
+LID,Learning Innovations and Design,Andrea Adams,adamsah@jmu.edu,LIB
+ADP,Adult Degree Program,Daniel Robinson,robinsdl@jmu.edu,PCE
+IDLS,Interdisciplinary Liberal Studies,Scott Paulson,paulsosa@jmu.edu,UNST
