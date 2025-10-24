@@ -1,0 +1,4 @@
+Faker
+Flask-AppBuilder
+psycopg[binary]
+sqlacodegen
