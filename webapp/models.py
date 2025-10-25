@@ -38,6 +38,9 @@ class College(Model):
 
     department: Mapped[list['Department']] = relationship('Department', back_populates='college')
 
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
 
 class Event(Model):
     __tablename__ = 'event'
@@ -53,6 +56,9 @@ class Event(Model):
     workshop: Mapped[list['Workshop']] = relationship('Workshop', back_populates='event')
     organizer: Mapped[list['Organizer']] = relationship('Organizer', back_populates='event')
 
+    def __str__(self):
+        return f"{self.year}"
+
 
 class Feature(Model):
     __tablename__ = 'feature'
@@ -65,6 +71,9 @@ class Feature(Model):
     description: Mapped[Optional[str]] = mapped_column(String(128))
 
     room: Mapped[list['Room']] = relationship('Room', secondary='room_feature', back_populates='feature')
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class Room(Model):
@@ -81,6 +90,9 @@ class Room(Model):
 
     feature: Mapped[list['Feature']] = relationship('Feature', secondary='room_feature', back_populates='room')
     workshop: Mapped[list['Workshop']] = relationship('Workshop', back_populates='room')
+
+    def __str__(self):
+        return f"{self.name} ({self.type})"
 
 
 class Department(Model):
@@ -99,6 +111,9 @@ class Department(Model):
 
     college: Mapped['College'] = relationship('College', back_populates='department')
     person: Mapped[list['Person']] = relationship('Person', back_populates='department')
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
 
 
 t_room_feature = Table(
@@ -130,6 +145,9 @@ class Timeslot(Model):
     event: Mapped['Event'] = relationship('Event', back_populates='timeslot')
     workshop: Mapped[list['Workshop']] = relationship('Workshop', secondary='workshop_timeslot', back_populates='timeslot')
 
+    def __str__(self):
+        return f"{self.name} ({str(self.beg_time)[:-3]}-{str(self.end_time)[:-3]})"
+
 
 class Workshop(Model):
     __tablename__ = 'workshop'
@@ -159,6 +177,9 @@ class Workshop(Model):
     room: Mapped[Optional['Room']] = relationship('Room', back_populates='workshop')
     person_workshop: Mapped[list['PersonWorkshop']] = relationship('PersonWorkshop', back_populates='workshop')
 
+    def __str__(self):
+        return f"{self.title} ({self.state})"
+
 
 class Person(Model):
     __tablename__ = 'person'
@@ -178,6 +199,9 @@ class Person(Model):
     department: Mapped['Department'] = relationship('Department', back_populates='person')
     organizer: Mapped[list['Organizer']] = relationship('Organizer', back_populates='person')
     person_workshop: Mapped[list['PersonWorkshop']] = relationship('PersonWorkshop', back_populates='person')
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.type})"
 
 
 t_workshop_timeslot = Table(
@@ -208,6 +232,9 @@ class Organizer(Model):
     event: Mapped['Event'] = relationship('Event', back_populates='organizer')
     person: Mapped['Person'] = relationship('Person', back_populates='organizer')
 
+    def __str__(self):
+        return f"{self.person_email}"
+
 
 class PersonWorkshop(Model):
     __tablename__ = 'person_workshop'
@@ -224,3 +251,6 @@ class PersonWorkshop(Model):
 
     person: Mapped['Person'] = relationship('Person', back_populates='person_workshop')
     workshop: Mapped['Workshop'] = relationship('Workshop', back_populates='person_workshop')
+
+    def __str__(self):
+        return f"{self.person_email} {self.workshop_id}"
