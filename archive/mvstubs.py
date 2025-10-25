@@ -2,8 +2,11 @@
 
 import psycopg
 
+HOST="data.cs.jmu.edu"
+TEAM="profs"
+
 # Get all tables and their columns
-with psycopg.connect(host="data.cs.jmu.edu", user="profs", dbname="profs") as conn:
+with psycopg.connect(host=HOST, user=TEAM, dbname=TEAM) as conn:
     with conn.cursor() as cur:
         cur.execute("""
             SELECT table_name, column_name

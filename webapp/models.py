@@ -36,7 +36,7 @@ class College(Model):
     dean_email: Mapped[str] = mapped_column(String(32), nullable=False)
     dean_first_name: Mapped[str] = mapped_column(String(32), nullable=False)
 
-    department: Mapped[list['Department']] = relationship('Department', back_populates='college')
+    departments: Mapped[list['Department']] = relationship('Department', back_populates='college')
 
     def __str__(self):
         return f"{self.name} ({self.code})"
@@ -52,9 +52,9 @@ class Event(Model):
     year: Mapped[int] = mapped_column(Integer, primary_key=True, comment='One event per year')
     date: Mapped[datetime.date] = mapped_column(Date, nullable=False, comment='The exact date of the event')
 
-    timeslot: Mapped[list['Timeslot']] = relationship('Timeslot', back_populates='event')
-    workshop: Mapped[list['Workshop']] = relationship('Workshop', back_populates='event')
-    organizer: Mapped[list['Organizer']] = relationship('Organizer', back_populates='event')
+    timeslots: Mapped[list['Timeslot']] = relationship('Timeslot', back_populates='event')
+    workshops: Mapped[list['Workshop']] = relationship('Workshop', back_populates='event')
+    organizers: Mapped[list['Organizer']] = relationship('Organizer', back_populates='event')
 
     def __str__(self):
         return f"{self.year}"
@@ -70,7 +70,7 @@ class Feature(Model):
     name: Mapped[str] = mapped_column(String(32), primary_key=True)
     description: Mapped[Optional[str]] = mapped_column(String(128))
 
-    room: Mapped[list['Room']] = relationship('Room', secondary='room_feature', back_populates='feature')
+    rooms: Mapped[list['Room']] = relationship('Room', secondary='room_feature', back_populates='features')
 
     def __str__(self):
         return f"{self.name}"
@@ -88,8 +88,8 @@ class Room(Model):
     capacity: Mapped[int] = mapped_column(Integer, nullable=False)
     notes: Mapped[Optional[str]] = mapped_column(String(64))
 
-    feature: Mapped[list['Feature']] = relationship('Feature', secondary='room_feature', back_populates='room')
-    workshop: Mapped[list['Workshop']] = relationship('Workshop', back_populates='room')
+    features: Mapped[list['Feature']] = relationship('Feature', secondary='room_feature', back_populates='rooms')
+    workshops: Mapped[list['Workshop']] = relationship('Workshop', back_populates='room')
 
     def __str__(self):
         return f"{self.name} ({self.type})"
@@ -109,8 +109,8 @@ class Department(Model):
     auh_email: Mapped[str] = mapped_column(String(32), nullable=False)
     college_code: Mapped[str] = mapped_column(String(8), nullable=False)
 
-    college: Mapped['College'] = relationship('College', back_populates='department')
-    person: Mapped[list['Person']] = relationship('Person', back_populates='department')
+    college: Mapped['College'] = relationship('College', back_populates='departments')
+    people: Mapped[list['Person']] = relationship('Person', back_populates='department')
 
     def __str__(self):
         return f"{self.name} ({self.code})"
@@ -142,8 +142,8 @@ class Timeslot(Model):
     beg_time: Mapped[str] = mapped_column(String(8), nullable=False)
     end_time: Mapped[str] = mapped_column(String(8), nullable=False)
 
-    event: Mapped['Event'] = relationship('Event', back_populates='timeslot')
-    workshop: Mapped[list['Workshop']] = relationship('Workshop', secondary='workshop_timeslot', back_populates='timeslot')
+    event: Mapped['Event'] = relationship('Event', back_populates='timeslots')
+    workshops: Mapped[list['Workshop']] = relationship('Workshop', secondary='workshop_timeslot', back_populates='timeslots')
 
     def __str__(self):
         return f"{self.name} ({str(self.beg_time)[:-3]}-{str(self.end_time)[:-3]})"
@@ -172,10 +172,10 @@ class Workshop(Model):
     other_information: Mapped[Optional[str]] = mapped_column(String(512), comment='Any other information about the workshop to be shared with the organizers.')
     room_name: Mapped[Optional[str]] = mapped_column(String(32), comment='The room is assigned later in the process, so it can be null.')
 
-    timeslot: Mapped[list['Timeslot']] = relationship('Timeslot', secondary='workshop_timeslot', back_populates='workshop')
-    event: Mapped['Event'] = relationship('Event', back_populates='workshop')
-    room: Mapped[Optional['Room']] = relationship('Room', back_populates='workshop')
-    person_workshop: Mapped[list['PersonWorkshop']] = relationship('PersonWorkshop', back_populates='workshop')
+    event: Mapped['Event'] = relationship('Event', back_populates='workshops')
+    room: Mapped[Optional['Room']] = relationship('Room', back_populates='workshops')
+    people: Mapped[list['PersonWorkshop']] = relationship('PersonWorkshop', back_populates='workshop')
+    timeslots: Mapped[list['Timeslot']] = relationship('Timeslot', secondary='workshop_timeslot', back_populates='workshops')
 
     def __str__(self):
         return f"{self.title} ({self.state})"
@@ -196,9 +196,9 @@ class Person(Model):
     department_code: Mapped[str] = mapped_column(String(8), nullable=False)
     phone: Mapped[Optional[str]] = mapped_column(String(16))
 
-    department: Mapped['Department'] = relationship('Department', back_populates='person')
-    organizer: Mapped[list['Organizer']] = relationship('Organizer', back_populates='person')
-    person_workshop: Mapped[list['PersonWorkshop']] = relationship('PersonWorkshop', back_populates='person')
+    department: Mapped['Department'] = relationship('Department', back_populates='people')
+    organizers: Mapped[list['Organizer']] = relationship('Organizer', back_populates='person')
+    workshops: Mapped[list['PersonWorkshop']] = relationship('PersonWorkshop', back_populates='person')
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.type})"
@@ -229,8 +229,8 @@ class Organizer(Model):
     person_email: Mapped[str] = mapped_column(String(32), primary_key=True)
     roles: Mapped[str] = mapped_column(String(512), nullable=False, comment='Comma-separated list of responsibilities')
 
-    event: Mapped['Event'] = relationship('Event', back_populates='organizer')
-    person: Mapped['Person'] = relationship('Person', back_populates='organizer')
+    event: Mapped['Event'] = relationship('Event', back_populates='organizers')
+    person: Mapped['Person'] = relationship('Person', back_populates='organizers')
 
     def __str__(self):
         return f"{self.person_email}"
@@ -249,8 +249,8 @@ class PersonWorkshop(Model):
     workshop_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     role: Mapped[str] = mapped_column(String(32), nullable=False, comment='Ex: organizer, volunteer')
 
-    person: Mapped['Person'] = relationship('Person', back_populates='person_workshop')
-    workshop: Mapped['Workshop'] = relationship('Workshop', back_populates='person_workshop')
+    person: Mapped['Person'] = relationship('Person', back_populates='workshops')
+    workshop: Mapped['Workshop'] = relationship('Workshop', back_populates='people')
 
     def __str__(self):
         return f"{self.person_email} {self.workshop_id}"

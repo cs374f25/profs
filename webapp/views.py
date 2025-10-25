@@ -16,8 +16,8 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 class PersonWorkshopModelView(ModelView):
     datamodel = SQLAInterface(models.PersonWorkshop)
     route_base = "/person_workshop"
-    list_title = "Person Workshops"
-    list_columns = ["person_email", "workshop_id", "role"]
+    list_title = "Enrollments"
+    list_columns = ["person", "workshop", "role"]
 
 
 class WorkshopModelView(ModelView):
@@ -28,17 +28,18 @@ class WorkshopModelView(ModelView):
         "id",
         "state",
         "title",
-        "advertisement",
-        "description",
+        #"advertisement",
+        #"description",
         "capacity",
-        "computer_needs",
-        "room_needs",
-        "max_repeat",
-        "parent_questions",
-        "other_information",
+        #"computer_needs",
+        #"room_needs",
+        #"max_repeat",
+        #"parent_questions",
+        #"other_information",
         "event_year",
         "room_name",
     ]
+    add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["people"]
     related_views = [PersonWorkshopModelView]
 
 
@@ -61,13 +62,14 @@ class EventModelView(ModelView):
     route_base = "/event"
     list_title = "Events"
     list_columns = ["year", "date"]
-    related_views = [OrganizerModelView, TimeslotModelView]
+    add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["organizers", "timeslots", "workshops"]
+    related_views = [OrganizerModelView, TimeslotModelView, WorkshopModelView]
 
 
 class PersonModelView(ModelView):
     datamodel = SQLAInterface(models.Person)
     route_base = "/person"
-    list_title = "Persons"
+    list_title = "People"
     list_columns = [
         "email",
         "type",
@@ -76,6 +78,7 @@ class PersonModelView(ModelView):
         "phone",
         "department_code",
     ]
+    add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["organizers", "workshops"]
     related_views = [OrganizerModelView, PersonWorkshopModelView]
 
 
@@ -84,6 +87,7 @@ class DepartmentModelView(ModelView):
     route_base = "/department"
     list_title = "Departments"
     list_columns = ["code", "name", "auh_full_name", "auh_email", "college_code"]
+    add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["people"]
     related_views = [PersonModelView]
 
 
@@ -92,7 +96,7 @@ class CollegeModelView(ModelView):
     route_base = "/college"
     list_title = "Colleges"
     list_columns = ["code", "name", "dean_full_name", "dean_email", "dean_first_name"]
-    add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["department"]
+    add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["departments"]
     related_views = [DepartmentModelView]
 
 
@@ -101,6 +105,7 @@ class RoomModelView(ModelView):
     route_base = "/room"
     list_title = "Rooms"
     list_columns = ["name", "type", "capacity", "notes"]
+    add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["workshops"]
     related_views = [WorkshopModelView]
 
 
@@ -139,7 +144,7 @@ appbuilder.add_view(
 
 appbuilder.add_view(
     PersonWorkshopModelView,
-    "Assignments",
+    "Enrollments",
     icon="fa-database",
     category="Admin",
 )
