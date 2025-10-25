@@ -1,6 +1,6 @@
 """Flask-AppBuilder views that provide CRUD web interfaces for the models."""
 
-# See https://fontawesome.com/icons for icon names
+# See https://fontawesome.com/icons for icon names.
 
 import models
 from app import appbuilder
@@ -31,34 +31,80 @@ class CollegeModelView(ModelView):
 
 class EventModelView(ModelView):
     datamodel = SQLAInterface(models.Event)
+    route_base = "/event"
+    list_title = "Events"
+    list_columns = ["year", "date"]
 
 
 class FeatureModelView(ModelView):
     datamodel = SQLAInterface(models.Feature)
+    route_base = "/feature"
+    list_title = "Features"
+    list_columns = ["name", "description"]
 
 
 class RoomModelView(ModelView):
     datamodel = SQLAInterface(models.Room)
+    route_base = "/room"
+    list_title = "Rooms"
+    list_columns = ["name", "type", "capacity", "notes"]
 
 
 class TimeslotModelView(ModelView):
     datamodel = SQLAInterface(models.Timeslot)
+    route_base = "/timeslot"
+    list_title = "Timeslots"
+    list_columns = ["event_year", "id", "name", "beg_time", "end_time"]
+    search_exclude_columns = ["beg_time", "end_time"]
 
 
 class WorkshopModelView(ModelView):
     datamodel = SQLAInterface(models.Workshop)
+    route_base = "/workshop"
+    list_title = "Workshops"
+    list_columns = [
+        "id",
+        "state",
+        "title",
+        "advertisement",
+        "description",
+        "capacity",
+        "computer_needs",
+        "room_needs",
+        "max_repeat",
+        "parent_questions",
+        "other_information",
+        "event_year",
+        "room_name",
+    ]
 
 
 class PersonModelView(ModelView):
     datamodel = SQLAInterface(models.Person)
+    route_base = "/person"
+    list_title = "Persons"
+    list_columns = [
+        "email",
+        "type",
+        "first_name",
+        "last_name",
+        "phone",
+        "department_code",
+    ]
 
 
 class OrganizerModelView(ModelView):
     datamodel = SQLAInterface(models.Organizer)
+    route_base = "/organizer"
+    list_title = "Organizers"
+    list_columns = ["event_year", "person_email", "roles"]
 
 
 class PersonWorkshopModelView(ModelView):
-    datamodel = SQLAInterface(models.Person)
+    datamodel = SQLAInterface(models.PersonWorkshop)
+    route_base = "/person_workshop"
+    list_title = "Person Workshops"
+    list_columns = ["person_email", "workshop_id", "role"]
 
 
 # -------------------------------------------------------------------------------
