@@ -1,5 +1,5 @@
 --
--- Workshops by department/college of faculty leader
+-- Workshops by faculty lead and department
 --
 CREATE VIEW workshop_department AS
   SELECT

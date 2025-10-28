@@ -1,9 +1,16 @@
 """Generate a basic ModelView class for each table in the database."""
 
 import psycopg
+import socket
 
-HOST="data.cs.jmu.edu"
-TEAM="profs"
+TEAM = "profs"
+
+# Determine whether connecting from on/off campus
+try:
+    socket.gethostbyname("data.cs.jmu.edu")
+    HOST = "data.cs.jmu.edu"
+except socket.gaierror:
+    HOST = "localhost"
 
 # Get all tables and their columns
 with psycopg.connect(host=HOST, user=TEAM, dbname=TEAM) as conn:
@@ -25,7 +32,7 @@ for table_name, column_name in schema:
 # Generate Flask-AppBuilder ModelView classes
 for table, columns in tables.items():
     name = table.capitalize()
-    print(f"class {name}ModelView(ModelView):")
+    print(f"class {name}(ModelView):")
     print(f"    datamodel = SQLAInterface(models.{name})")
     print(f"    route_base = '/{table}'")
     print(f"    list_title = '{name}s'")
@@ -35,10 +42,10 @@ for table, columns in tables.items():
 # Generate code to add each view to the app
 for table in tables:
     name = table.capitalize()
-    print('appbuilder.add_view(')
-    print(f'    {name}ModelView,')
+    print("appbuilder.add_view(")
+    print(f"    {name},")
     print(f'    "{name}s",')
     print('    icon="fa-database",')
     print('    category="Admin",')
-    print(')')
+    print(")")
     print()

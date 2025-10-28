@@ -7,6 +7,7 @@ from typing import Optional
 
 from flask_appbuilder import Model
 from sqlalchemy import (
+    BigInteger,
     Column,
     Date,
     ForeignKeyConstraint,
@@ -15,6 +16,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     String,
     Table,
+    Text,
 )
 from sqlalchemy.orm import (
     Mapped,
@@ -23,130 +25,41 @@ from sqlalchemy.orm import (
 )
 
 
-class College(Model):
-    __tablename__ = 'college'
+# -------------------------------------------------------------------------------
+# Database Tables (in same order as drop.sql)
+# -------------------------------------------------------------------------------
+
+
+class PersonWorkshop(Model):
+    __tablename__ = 'person_workshop'
     __table_args__ = (
-        PrimaryKeyConstraint('code', name='college_pkey'),
-        {'comment': 'Needed for name lookups and thank-you emails.'}
+        ForeignKeyConstraint(['person_email'], ['person.email'], name='person_workshop_person_email_fkey'),
+        ForeignKeyConstraint(['workshop_id'], ['workshop.id'], name='person_workshop_workshop_id_fkey'),
+        PrimaryKeyConstraint('person_email', 'workshop_id', name='person_workshop_pkey'),
+        {'comment': 'Connects a person to a workshop with a specific role.'}
     )
 
-    code: Mapped[str] = mapped_column(String(8), primary_key=True, comment='Ex: CISE')
-    name: Mapped[str] = mapped_column(String(64), nullable=False)
-    dean_full_name: Mapped[str] = mapped_column(String(32), nullable=False)
-    dean_email: Mapped[str] = mapped_column(String(32), nullable=False)
-    dean_first_name: Mapped[str] = mapped_column(String(32), nullable=False)
+    person_email: Mapped[str] = mapped_column(String(32), primary_key=True)
+    workshop_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    role: Mapped[str] = mapped_column(String(32), nullable=False, comment='Ex: organizer, volunteer')
 
-    departments: Mapped[list['Department']] = relationship('Department', back_populates='college')
-
-    def __str__(self):
-        return f"{self.name} ({self.code})"
-
-
-class Event(Model):
-    __tablename__ = 'event'
-    __table_args__ = (
-        PrimaryKeyConstraint('year', name='event_pkey'),
-        {'comment': 'More attributes to be added later: guest speaker, theme, etc.'}
-    )
-
-    year: Mapped[int] = mapped_column(Integer, primary_key=True, comment='One event per year')
-    date: Mapped[datetime.date] = mapped_column(Date, nullable=False, comment='The exact date of the event')
-
-    timeslots: Mapped[list['Timeslot']] = relationship('Timeslot', back_populates='event')
-    workshops: Mapped[list['Workshop']] = relationship('Workshop', back_populates='event')
-    organizers: Mapped[list['Organizer']] = relationship('Organizer', back_populates='event')
+    person: Mapped['Person'] = relationship('Person', back_populates='workshops')
+    workshop: Mapped['Workshop'] = relationship('Workshop', back_populates='people')
 
     def __str__(self):
-        return f"{self.year}"
+        return f"{self.person_email} {self.workshop_id}"
 
 
-class Feature(Model):
-    __tablename__ = 'feature'
-    __table_args__ = (
-        PrimaryKeyConstraint('name', name='feature_pkey'),
-        {'comment': 'Just to lookup some features like sink, computers, projector, etc.'}
-    )
-
-    name: Mapped[str] = mapped_column(String(32), primary_key=True)
-    description: Mapped[Optional[str]] = mapped_column(String(128))
-
-    rooms: Mapped[list['Room']] = relationship('Room', secondary='room_feature', back_populates='features')
-
-    def __str__(self):
-        return f"{self.name}"
-
-
-class Room(Model):
-    __tablename__ = 'room'
-    __table_args__ = (
-        PrimaryKeyConstraint('name', name='room_pkey'),
-        {'comment': 'Rooms on campus that may be used by madiSTEM.'}
-    )
-
-    name: Mapped[str] = mapped_column(String(32), primary_key=True, comment='The short name of the room, like King 250')
-    type: Mapped[str] = mapped_column(String(32), nullable=False, comment='Ex: classroom, lab')
-    capacity: Mapped[int] = mapped_column(Integer, nullable=False)
-    notes: Mapped[Optional[str]] = mapped_column(String(64))
-
-    features: Mapped[list['Feature']] = relationship('Feature', secondary='room_feature', back_populates='rooms')
-    workshops: Mapped[list['Workshop']] = relationship('Workshop', back_populates='room')
-
-    def __str__(self):
-        return f"{self.name} ({self.type})"
-
-
-class Department(Model):
-    __tablename__ = 'department'
-    __table_args__ = (
-        ForeignKeyConstraint(['college_code'], ['college.code'], name='department_college_code_fkey'),
-        PrimaryKeyConstraint('code', name='department_pkey'),
-        {'comment': 'Needed for name lookups and thank-you emails.'}
-    )
-
-    code: Mapped[str] = mapped_column(String(8), primary_key=True, comment='Ex: CS')
-    name: Mapped[str] = mapped_column(String(64), nullable=False)
-    auh_full_name: Mapped[str] = mapped_column(String(32), nullable=False)
-    auh_email: Mapped[str] = mapped_column(String(32), nullable=False)
-    college_code: Mapped[str] = mapped_column(String(8), nullable=False)
-
-    college: Mapped['College'] = relationship('College', back_populates='departments')
-    people: Mapped[list['Person']] = relationship('Person', back_populates='department')
-
-    def __str__(self):
-        return f"{self.name} ({self.code})"
-
-
-t_room_feature = Table(
-    'room_feature', Model.metadata,
-    Column('room_name', String(32), primary_key=True),
-    Column('feature_name', String(32), primary_key=True),
-    ForeignKeyConstraint(['feature_name'], ['feature.name'], name='room_feature_feature_name_fkey'),
-    ForeignKeyConstraint(['room_name'], ['room.name'], name='room_feature_room_name_fkey'),
-    PrimaryKeyConstraint('room_name', 'feature_name', name='room_feature_pkey'),
-    comment='M-N connection between room and features (see https://www.lib.jmu.edu/tech-classrooms/).'
+t_workshop_timeslot = Table(
+    'workshop_timeslot', Model.metadata,
+    Column('workshop_id', Integer, primary_key=True),
+    Column('timeslot_event_year', Integer, primary_key=True),
+    Column('timeslot_id', Integer, primary_key=True),
+    ForeignKeyConstraint(['timeslot_event_year', 'timeslot_id'], ['timeslot.event_year', 'timeslot.id'], name='workshop_timeslot_timeslot_event_year_timeslot_id_fkey'),
+    ForeignKeyConstraint(['workshop_id'], ['workshop.id'], name='workshop_timeslot_workshop_id_fkey'),
+    PrimaryKeyConstraint('workshop_id', 'timeslot_event_year', 'timeslot_id', name='workshop_timeslot_pkey'),
+    comment='Connects the workshop to slot M-N, because many workshops can be scheduled in the same slot.'
 )
-
-
-class Timeslot(Model):
-    __tablename__ = 'timeslot'
-    __table_args__ = (
-        ForeignKeyConstraint(['event_year'], ['event.year'], name='timeslot_event_year_fkey'),
-        PrimaryKeyConstraint('event_year', 'id', name='timeslot_pkey'),
-        {'comment': 'An event is divided into time slots -- these are the schedule for the day.'}
-    )
-
-    event_year: Mapped[int] = mapped_column(Integer, primary_key=True)
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, comment='The slots are numbered 1..N from earliest to latest')
-    name: Mapped[str] = mapped_column(String(32), nullable=False, comment='Ex: registration, lunch, speaker, workshops')
-    # Unfortunately, sqlalchemy.Time is not supported by Flask-AppBuilder
-    beg_time: Mapped[str] = mapped_column(String(8), nullable=False)
-    end_time: Mapped[str] = mapped_column(String(8), nullable=False)
-
-    event: Mapped['Event'] = relationship('Event', back_populates='timeslots')
-    workshops: Mapped[list['Workshop']] = relationship('Workshop', secondary='workshop_timeslot', back_populates='timeslots')
-
-    def __str__(self):
-        return f"{self.name} ({str(self.beg_time)[:-3]}-{str(self.end_time)[:-3]})"
 
 
 class Workshop(Model):
@@ -181,6 +94,66 @@ class Workshop(Model):
         return f"{self.title} ({self.state})"
 
 
+class Timeslot(Model):
+    __tablename__ = 'timeslot'
+    __table_args__ = (
+        ForeignKeyConstraint(['event_year'], ['event.year'], name='timeslot_event_year_fkey'),
+        PrimaryKeyConstraint('event_year', 'id', name='timeslot_pkey'),
+        {'comment': 'An event is divided into time slots -- these are the schedule for the day.'}
+    )
+
+    event_year: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, comment='The slots are numbered 1..N from earliest to latest')
+    name: Mapped[str] = mapped_column(String(32), nullable=False, comment='Ex: registration, lunch, speaker, workshops')
+    # Unfortunately, sqlalchemy.Time is not supported by Flask-AppBuilder
+    beg_time: Mapped[str] = mapped_column(String(8), nullable=False)
+    end_time: Mapped[str] = mapped_column(String(8), nullable=False)
+
+    event: Mapped['Event'] = relationship('Event', back_populates='timeslots')
+    workshops: Mapped[list['Workshop']] = relationship('Workshop', secondary='workshop_timeslot', back_populates='timeslots')
+
+    def __str__(self):
+        return f"{self.name} ({str(self.beg_time)[:-3]}-{str(self.end_time)[:-3]})"
+
+
+class Organizer(Model):
+    __tablename__ = 'organizer'
+    __table_args__ = (
+        ForeignKeyConstraint(['event_year'], ['event.year'], name='organizer_event_year_fkey'),
+        ForeignKeyConstraint(['person_email'], ['person.email'], name='organizer_person_email_fkey'),
+        PrimaryKeyConstraint('event_year', 'person_email', name='organizer_pkey'),
+        {'comment': 'Tracks the roles of the madiSTEM organizers by year (M-N with event).'}
+    )
+
+    event_year: Mapped[int] = mapped_column(Integer, primary_key=True)
+    person_email: Mapped[str] = mapped_column(String(32), primary_key=True)
+    roles: Mapped[str] = mapped_column(String(512), nullable=False, comment='Comma-separated list of responsibilities')
+
+    event: Mapped['Event'] = relationship('Event', back_populates='organizers')
+    person: Mapped['Person'] = relationship('Person', back_populates='organizers')
+
+    def __str__(self):
+        return f"{self.person_email}"
+
+
+class Event(Model):
+    __tablename__ = 'event'
+    __table_args__ = (
+        PrimaryKeyConstraint('year', name='event_pkey'),
+        {'comment': 'More attributes to be added later: guest speaker, theme, etc.'}
+    )
+
+    year: Mapped[int] = mapped_column(Integer, primary_key=True, comment='One event per year')
+    date: Mapped[datetime.date] = mapped_column(Date, nullable=False, comment='The exact date of the event')
+
+    timeslots: Mapped[list['Timeslot']] = relationship('Timeslot', back_populates='event')
+    workshops: Mapped[list['Workshop']] = relationship('Workshop', back_populates='event')
+    organizers: Mapped[list['Organizer']] = relationship('Organizer', back_populates='event')
+
+    def __str__(self):
+        return f"{self.year}"
+
+
 class Person(Model):
     __tablename__ = 'person'
     __table_args__ = (
@@ -204,53 +177,157 @@ class Person(Model):
         return f"{self.first_name} {self.last_name} ({self.type})"
 
 
-t_workshop_timeslot = Table(
-    'workshop_timeslot', Model.metadata,
-    Column('workshop_id', Integer, primary_key=True),
-    Column('timeslot_event_year', Integer, primary_key=True),
-    Column('timeslot_id', Integer, primary_key=True),
-    ForeignKeyConstraint(['timeslot_event_year', 'timeslot_id'], ['timeslot.event_year', 'timeslot.id'], name='workshop_timeslot_timeslot_event_year_timeslot_id_fkey'),
-    ForeignKeyConstraint(['workshop_id'], ['workshop.id'], name='workshop_timeslot_workshop_id_fkey'),
-    PrimaryKeyConstraint('workshop_id', 'timeslot_event_year', 'timeslot_id', name='workshop_timeslot_pkey'),
-    comment='Connects the workshop to slot M-N, because many workshops can be scheduled in the same slot.'
+class Department(Model):
+    __tablename__ = 'department'
+    __table_args__ = (
+        ForeignKeyConstraint(['college_code'], ['college.code'], name='department_college_code_fkey'),
+        PrimaryKeyConstraint('code', name='department_pkey'),
+        {'comment': 'Needed for name lookups and thank-you emails.'}
+    )
+
+    code: Mapped[str] = mapped_column(String(8), primary_key=True, comment='Ex: CS')
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    auh_full_name: Mapped[str] = mapped_column(String(32), nullable=False)
+    auh_email: Mapped[str] = mapped_column(String(32), nullable=False)
+    college_code: Mapped[str] = mapped_column(String(8), nullable=False)
+
+    college: Mapped['College'] = relationship('College', back_populates='departments')
+    people: Mapped[list['Person']] = relationship('Person', back_populates='department')
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+class College(Model):
+    __tablename__ = 'college'
+    __table_args__ = (
+        PrimaryKeyConstraint('code', name='college_pkey'),
+        {'comment': 'Needed for name lookups and thank-you emails.'}
+    )
+
+    code: Mapped[str] = mapped_column(String(8), primary_key=True, comment='Ex: CISE')
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    dean_full_name: Mapped[str] = mapped_column(String(32), nullable=False)
+    dean_email: Mapped[str] = mapped_column(String(32), nullable=False)
+    dean_first_name: Mapped[str] = mapped_column(String(32), nullable=False)
+
+    departments: Mapped[list['Department']] = relationship('Department', back_populates='college')
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+t_room_feature = Table(
+    'room_feature', Model.metadata,
+    Column('room_name', String(32), primary_key=True),
+    Column('feature_name', String(32), primary_key=True),
+    ForeignKeyConstraint(['feature_name'], ['feature.name'], name='room_feature_feature_name_fkey'),
+    ForeignKeyConstraint(['room_name'], ['room.name'], name='room_feature_room_name_fkey'),
+    PrimaryKeyConstraint('room_name', 'feature_name', name='room_feature_pkey'),
+    comment='M-N connection between room and features (see https://www.lib.jmu.edu/tech-classrooms/).'
 )
 
 
-class Organizer(Model):
-    __tablename__ = 'organizer'
+class Room(Model):
+    __tablename__ = 'room'
     __table_args__ = (
-        ForeignKeyConstraint(['event_year'], ['event.year'], name='organizer_event_year_fkey'),
-        ForeignKeyConstraint(['person_email'], ['person.email'], name='organizer_person_email_fkey'),
-        PrimaryKeyConstraint('event_year', 'person_email', name='organizer_pkey'),
-        {'comment': 'Tracks the roles of the madiSTEM organizers by year (M-N with event).'}
+        PrimaryKeyConstraint('name', name='room_pkey'),
+        {'comment': 'Rooms on campus that may be used by madiSTEM.'}
     )
 
-    event_year: Mapped[int] = mapped_column(Integer, primary_key=True)
-    person_email: Mapped[str] = mapped_column(String(32), primary_key=True)
-    roles: Mapped[str] = mapped_column(String(512), nullable=False, comment='Comma-separated list of responsibilities')
+    name: Mapped[str] = mapped_column(String(32), primary_key=True, comment='The short name of the room, like King 250')
+    type: Mapped[str] = mapped_column(String(32), nullable=False, comment='Ex: classroom, lab')
+    capacity: Mapped[int] = mapped_column(Integer, nullable=False)
+    notes: Mapped[Optional[str]] = mapped_column(String(64))
 
-    event: Mapped['Event'] = relationship('Event', back_populates='organizers')
-    person: Mapped['Person'] = relationship('Person', back_populates='organizers')
+    features: Mapped[list['Feature']] = relationship('Feature', secondary='room_feature', back_populates='rooms')
+    workshops: Mapped[list['Workshop']] = relationship('Workshop', back_populates='room')
 
     def __str__(self):
-        return f"{self.person_email}"
+        return f"{self.name} ({self.type})"
 
 
-class PersonWorkshop(Model):
-    __tablename__ = 'person_workshop'
+class Feature(Model):
+    __tablename__ = 'feature'
     __table_args__ = (
-        ForeignKeyConstraint(['person_email'], ['person.email'], name='person_workshop_person_email_fkey'),
-        ForeignKeyConstraint(['workshop_id'], ['workshop.id'], name='person_workshop_workshop_id_fkey'),
-        PrimaryKeyConstraint('person_email', 'workshop_id', name='person_workshop_pkey'),
-        {'comment': 'Connects a person to a workshop with a specific role.'}
+        PrimaryKeyConstraint('name', name='feature_pkey'),
+        {'comment': 'Just to lookup some features like sink, computers, projector, etc.'}
     )
 
-    person_email: Mapped[str] = mapped_column(String(32), primary_key=True)
-    workshop_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    role: Mapped[str] = mapped_column(String(32), nullable=False, comment='Ex: organizer, volunteer')
+    name: Mapped[str] = mapped_column(String(32), primary_key=True)
+    description: Mapped[Optional[str]] = mapped_column(String(128))
 
-    person: Mapped['Person'] = relationship('Person', back_populates='workshops')
-    workshop: Mapped['Workshop'] = relationship('Workshop', back_populates='people')
+    rooms: Mapped[list['Room']] = relationship('Room', secondary='room_feature', back_populates='features')
 
     def __str__(self):
-        return f"{self.person_email} {self.workshop_id}"
+        return f"{self.name}"
+
+
+# -------------------------------------------------------------------------------
+# Database Views (in same order as drop.sql)
+# -------------------------------------------------------------------------------
+
+
+t_workshop_department = Table(
+    'workshop_department', Model.metadata,
+    Column('id', Integer, primary_key=True),
+    Column('state', String(32)),
+    Column('title', String(64)),
+    Column('leader', String(32), primary_key=True),
+    Column('first_name', String(32)),
+    Column('last_name', String(32)),
+    Column('department_code', String(8)),
+    Column('college_code', String(8))
+)
+
+
+t_workshop_room = Table(
+    'workshop_room', Model.metadata,
+    Column('id', Integer, primary_key=True),
+    Column('state', String(32)),
+    Column('title', String(64)),
+    Column('room_name', String(32)),
+    Column('room_type', String(32)),
+    Column('room_capacity', Integer),
+    Column('features', Text)
+)
+
+
+t_volunteer_college = Table(
+    'volunteer_college', Model.metadata,
+    Column('event_year', Integer, primary_key=True),
+    Column('college_code', String(8), primary_key=True),
+    Column('students', BigInteger)
+)
+
+
+t_event_schedule = Table(
+    'event_schedule', Model.metadata,
+    Column('event_year', Integer, primary_key=True),
+    Column('t_id', Integer, primary_key=True),
+    # Unfortunately, sqlalchemy.Time is not supported by Flask-AppBuilder
+    Column('beg_time', String(8)),
+    Column('end_time', String(8)),
+    Column('w_id', Integer, primary_key=True),
+    Column('title', String(64)),
+    Column('advertisement', String(512))
+)
+
+
+# Define a mapped class for each Table object so we can use SQLAInterface.
+
+
+class Workshop_Department(Model):
+    __table__ = t_workshop_department
+
+
+class Workshop_Room(Model):
+    __table__ = t_workshop_room
+
+
+class Volunteer_College(Model):
+    __table__ = t_volunteer_college
+
+
+class Event_Schedule(Model):
+    __table__ = t_event_schedule

@@ -9,18 +9,18 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 
 
 # -------------------------------------------------------------------------------
-# Model Views (in same order as drop.sql)
+# Database Tables (in same order as drop.sql)
 # -------------------------------------------------------------------------------
 
 
-class PersonWorkshopModelView(ModelView):
+class PersonWorkshop(ModelView):
     datamodel = SQLAInterface(models.PersonWorkshop)
     route_base = "/person_workshop"
     list_title = "Enrollments"
     list_columns = ["person", "workshop", "role"]
 
 
-class WorkshopModelView(ModelView):
+class Workshop(ModelView):
     datamodel = SQLAInterface(models.Workshop)
     route_base = "/workshop"
     list_title = "Workshops"
@@ -40,33 +40,33 @@ class WorkshopModelView(ModelView):
         "room_name",
     ]
     add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["people"]
-    related_views = [PersonWorkshopModelView]
+    related_views = [PersonWorkshop]
 
 
-class TimeslotModelView(ModelView):
+class Timeslot(ModelView):
     datamodel = SQLAInterface(models.Timeslot)
     route_base = "/timeslot"
     list_title = "Timeslots"
     list_columns = ["event_year", "id", "name", "beg_time", "end_time"]
 
 
-class OrganizerModelView(ModelView):
+class Organizer(ModelView):
     datamodel = SQLAInterface(models.Organizer)
     route_base = "/organizer"
     list_title = "Organizers"
     list_columns = ["event_year", "person_email", "roles"]
 
 
-class EventModelView(ModelView):
+class Event(ModelView):
     datamodel = SQLAInterface(models.Event)
     route_base = "/event"
     list_title = "Events"
     list_columns = ["year", "date"]
     add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["organizers", "timeslots", "workshops"]
-    related_views = [OrganizerModelView, TimeslotModelView, WorkshopModelView]
+    related_views = [Organizer, Timeslot, Workshop]
 
 
-class PersonModelView(ModelView):
+class Person(ModelView):
     datamodel = SQLAInterface(models.Person)
     route_base = "/person"
     list_title = "People"
@@ -79,37 +79,37 @@ class PersonModelView(ModelView):
         "department_code",
     ]
     add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["organizers", "workshops"]
-    related_views = [OrganizerModelView, PersonWorkshopModelView]
+    related_views = [Organizer, PersonWorkshop]
 
 
-class DepartmentModelView(ModelView):
+class Department(ModelView):
     datamodel = SQLAInterface(models.Department)
     route_base = "/department"
     list_title = "Departments"
     list_columns = ["code", "name", "auh_full_name", "auh_email", "college_code"]
     add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["people"]
-    related_views = [PersonModelView]
+    related_views = [Person]
 
 
-class CollegeModelView(ModelView):
+class College(ModelView):
     datamodel = SQLAInterface(models.College)
     route_base = "/college"
     list_title = "Colleges"
     list_columns = ["code", "name", "dean_full_name", "dean_email", "dean_first_name"]
     add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["departments"]
-    related_views = [DepartmentModelView]
+    related_views = [Department]
 
 
-class RoomModelView(ModelView):
+class Room(ModelView):
     datamodel = SQLAInterface(models.Room)
     route_base = "/room"
     list_title = "Rooms"
     list_columns = ["name", "type", "capacity", "notes"]
     add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["workshops"]
-    related_views = [WorkshopModelView]
+    related_views = [Workshop]
 
 
-class FeatureModelView(ModelView):
+class Feature(ModelView):
     datamodel = SQLAInterface(models.Feature)
     route_base = "/feature"
     list_title = "Features"
@@ -117,80 +117,153 @@ class FeatureModelView(ModelView):
 
 
 # -------------------------------------------------------------------------------
-# Database Menu (in an order that makes sense for the GUI)
+# Database Views (in same order as drop.sql)
 # -------------------------------------------------------------------------------
 
+
+class Workshop_Department(ModelView):
+    datamodel = SQLAInterface(models.Workshop_Department)
+    route_base = '/workshop_department'
+    list_title = 'Workshop Leaders'
+    list_columns = ['id', 'state', 'title', 'leader', 'first_name', 'last_name', 'department_code', 'college_code']
+    base_permissions = ['can_list']
+
+
+class Workshop_Room(ModelView):
+    datamodel = SQLAInterface(models.Workshop_Room)
+    route_base = '/workshop_room'
+    list_title = 'Workshop Rooms'
+    list_columns = ['id', 'state', 'title', 'room_name', 'room_type', 'room_capacity', 'features']
+    base_permissions = ['can_list']
+
+
+class Volunteer_College(ModelView):
+    datamodel = SQLAInterface(models.Volunteer_College)
+    route_base = '/volunteer_college'
+    list_title = 'Volunteers by College'
+    list_columns = ['event_year', 'college_code', 'students']
+    base_permissions = ['can_list']
+
+
+class Event_Schedule(ModelView):
+    datamodel = SQLAInterface(models.Event_Schedule)
+    route_base = '/event_schedule'
+    list_title = 'Event Schedules',
+    list_columns = ['event_year', 't_id', 'beg_time', 'end_time', 'w_id', 'title', 'advertisement']
+    base_permissions = ['can_list']
+
+
+# -------------------------------------------------------------------------------
+# Tables Menu (in an order that makes sense for the GUI)
+# -------------------------------------------------------------------------------
+
+
 appbuilder.add_view(
-    CollegeModelView,
+    College,
     "Colleges",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
     category_icon="fa-database",
 )
 
 appbuilder.add_view(
-    DepartmentModelView,
+    Department,
     "Departments",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
 )
 
 appbuilder.add_view(
-    PersonModelView,
-    "Persons",
+    Person,
+    "People",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
 )
 
 appbuilder.add_view(
-    PersonWorkshopModelView,
+    PersonWorkshop,
     "Enrollments",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
 )
 
-appbuilder.add_separator("Admin")
+appbuilder.add_separator("Tables")
 
 appbuilder.add_view(
-    WorkshopModelView,
+    Workshop,
     "Workshops",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
 )
 
 appbuilder.add_view(
-    RoomModelView,
+    Room,
     "Rooms",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
 )
 
 appbuilder.add_view(
-    FeatureModelView,
+    Feature,
     "Features",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
 )
 
-appbuilder.add_separator("Admin")
+appbuilder.add_separator("Tables")
 
 appbuilder.add_view(
-    OrganizerModelView,
+    Organizer,
     "Organizers",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
 )
 
 appbuilder.add_view(
-    EventModelView,
+    Event,
     "Events",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
 )
 
 appbuilder.add_view(
-    TimeslotModelView,
+    Timeslot,
     "Time Slots",
     icon="fa-database",
-    category="Admin",
+    category="Tables",
+)
+
+
+# -------------------------------------------------------------------------------
+# Views Menu (in an order that makes sense for the GUI)
+# -------------------------------------------------------------------------------
+
+
+appbuilder.add_view(
+    Event_Schedule,
+    "Event Schedules",
+    icon="fa-database",
+    category="Views",
+    category_icon="fa-database",
+)
+
+appbuilder.add_view(
+    Volunteer_College,
+    "Volunteers by College",
+    icon="fa-database",
+    category="Views",
+)
+
+appbuilder.add_view(
+    Workshop_Department,
+    "Workshop Leaders",
+    icon="fa-database",
+    category="Views",
+)
+
+appbuilder.add_view(
+    Workshop_Room,
+    "Workshop Rooms",
+    icon="fa-database",
+    category="Views",
 )
