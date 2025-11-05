@@ -2,10 +2,12 @@
 
 # See https://fontawesome.com/icons for icon names.
 
+import markdown
 import models
 from app import appbuilder
-from flask_appbuilder import ModelView
+from flask_appbuilder import BaseView, ModelView, expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
+from pathlib import Path
 
 
 # -------------------------------------------------------------------------------
@@ -267,3 +269,26 @@ appbuilder.add_view(
     icon="fa-database",
     category="Views",
 )
+
+
+# -------------------------------------------------------------------------------
+# Custom Views
+# -------------------------------------------------------------------------------
+
+
+def md_to_html(filename: str) -> str:
+    """Render a markdown file as html."""
+    path = Path("templates") / filename
+    md = path.read_text(encoding="utf-8")
+    return markdown.markdown(md, extensions=["attr_list", "md_in_html"])
+
+
+class AboutView(BaseView):
+    route_base = "/about"
+
+    @expose("/")
+    def about(self):
+        return self.render_template("about.jinja", html=md_to_html("about.md"))
+
+
+appbuilder.add_view_no_menu(AboutView())
