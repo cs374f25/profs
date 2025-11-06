@@ -1,4 +1,5 @@
 Faker
 Flask-AppBuilder
+markdown
 psycopg[binary]
 sqlacodegen
