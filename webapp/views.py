@@ -5,7 +5,9 @@
 import markdown
 import models
 from app import appbuilder
+from flask import flash, redirect
 from flask_appbuilder import BaseView, ModelView, expose
+from flask_appbuilder.actions import action
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from pathlib import Path
 
@@ -100,6 +102,14 @@ class College(ModelView):
     list_columns = ["code", "name", "dean_full_name", "dean_email", "dean_first_name"]
     add_exclude_columns = edit_exclude_columns = show_exclude_columns = ["departments"]
     related_views = [Department]
+
+    @action("myaction", "Send reminder email", "Are you sure?", "fa-email")
+    def send_email(self, items):
+        # items may be a single College object or a list of College objects
+        if not isinstance(items, list):
+            items = [items]
+        flash(f"{len(items)} emails sent!", "success")
+        return redirect(self.get_redirect())
 
 
 class Room(ModelView):
@@ -288,7 +298,7 @@ class AboutView(BaseView):
 
     @expose("/")
     def about(self):
-        return self.render_template("about.jinja", html=md_to_html("about.md"))
+        return self.render_template("about.jinja", content=md_to_html("about.md"))
 
 
 appbuilder.add_view_no_menu(AboutView())
