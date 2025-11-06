@@ -2,7 +2,6 @@
 
 # See https://fontawesome.com/icons for icon names.
 
-import markdown
 import models
 from app import appbuilder
 from flask import flash, redirect
@@ -11,6 +10,7 @@ from flask_appbuilder.actions import action
 from flask_appbuilder.charts.views import DirectByChartView, GroupByChartView
 from flask_appbuilder.models.group import aggregate_count
 from flask_appbuilder.models.sqla.interface import SQLAInterface
+from markdown import markdown
 from pathlib import Path
 
 
@@ -346,8 +346,8 @@ appbuilder.add_view(
 def md_to_html(filename: str) -> str:
     """Render a markdown file as html."""
     path = Path("templates") / filename
-    md = path.read_text(encoding="utf-8")
-    return markdown.markdown(md, extensions=["attr_list", "md_in_html"])
+    text = path.read_text(encoding="utf-8")
+    return markdown(text, extensions=["attr_list"])
 
 
 class AboutView(BaseView):
