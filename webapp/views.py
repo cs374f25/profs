@@ -8,6 +8,8 @@ from app import appbuilder
 from flask import flash, redirect
 from flask_appbuilder import BaseView, ModelView, expose
 from flask_appbuilder.actions import action
+from flask_appbuilder.charts.views import DirectByChartView, GroupByChartView
+from flask_appbuilder.models.group import aggregate_count
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from pathlib import Path
 
@@ -166,6 +168,41 @@ class Event_Schedule(ModelView):
 
 
 # -------------------------------------------------------------------------------
+# Chart Views
+# -------------------------------------------------------------------------------
+
+
+class Workshop_Department_Chart(GroupByChartView):
+    datamodel = SQLAInterface(models.Workshop_Department)
+    chart_title = "Workshop Leaders"
+    definitions = [
+        {
+            "group": "college_code",
+            "series": [
+                (aggregate_count, "leader"),
+            ]
+        },
+        {
+            "group": "department_code",
+            "series": [
+                (aggregate_count, "leader"),
+            ]
+        },
+    ]
+
+
+class Volunteer_College_Chart(DirectByChartView):
+    datamodel = SQLAInterface(models.Volunteer_College)
+    chart_title = "Volunteers by College"
+    definitions = [
+        {
+            "group": "college_code",
+            "series": ["students"]
+        }
+    ]
+
+
+# -------------------------------------------------------------------------------
 # Tables Menu (in an order that makes sense for the GUI)
 # -------------------------------------------------------------------------------
 
@@ -282,7 +319,27 @@ appbuilder.add_view(
 
 
 # -------------------------------------------------------------------------------
-# Custom Views
+# Views Menu (in an order that makes sense for the GUI)
+# -------------------------------------------------------------------------------
+
+
+appbuilder.add_view(
+    Workshop_Department_Chart,
+    "Workshop Leaders",
+    icon="fa-chart-simple",
+    category="Charts",
+    category_icon="fa-chart-simple",
+)
+
+appbuilder.add_view(
+    Volunteer_College_Chart,
+    "Volunteers by College",
+    icon="fa-chart-simple",
+    category="Charts",
+)
+
+# -------------------------------------------------------------------------------
+# Custom Views (not in menu)
 # -------------------------------------------------------------------------------
 
 
