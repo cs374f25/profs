@@ -7,7 +7,6 @@ from typing import Optional
 
 from flask_appbuilder import Model
 from sqlalchemy import (
-    BigInteger,
     Column,
     Date,
     ForeignKeyConstraint,
@@ -16,7 +15,6 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     String,
     Table,
-    Text,
 )
 from sqlalchemy.orm import (
     Mapped,
@@ -25,9 +23,9 @@ from sqlalchemy.orm import (
 )
 
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Database Tables (in same order as drop.sql)
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class PersonWorkshop(Model):
@@ -261,73 +259,3 @@ class Feature(Model):
 
     def __str__(self):
         return f"{self.name}"
-
-
-# -------------------------------------------------------------------------------
-# Database Views (in same order as drop.sql)
-# -------------------------------------------------------------------------------
-
-
-t_workshop_department = Table(
-    'workshop_department', Model.metadata,
-    Column('id', Integer, primary_key=True),
-    Column('state', String(32)),
-    Column('title', String(64)),
-    Column('leader', String(32), primary_key=True),
-    Column('first_name', String(32)),
-    Column('last_name', String(32)),
-    Column('department_code', String(8)),
-    Column('college_code', String(8))
-)
-
-
-t_workshop_room = Table(
-    'workshop_room', Model.metadata,
-    Column('id', Integer, primary_key=True),
-    Column('state', String(32)),
-    Column('title', String(64)),
-    Column('room_name', String(32)),
-    Column('room_type', String(32)),
-    Column('room_capacity', Integer),
-    Column('features', Text)
-)
-
-
-t_volunteer_college = Table(
-    'volunteer_college', Model.metadata,
-    Column('event_year', Integer, primary_key=True),
-    Column('college_code', String(8), primary_key=True),
-    Column('students', BigInteger)
-)
-
-
-t_event_schedule = Table(
-    'event_schedule', Model.metadata,
-    Column('event_year', Integer, primary_key=True),
-    Column('t_id', Integer, primary_key=True),
-    # Unfortunately, sqlalchemy.Time is not supported by Flask-AppBuilder
-    Column('beg_time', String(8)),
-    Column('end_time', String(8)),
-    Column('w_id', Integer, primary_key=True),
-    Column('title', String(64)),
-    Column('advertisement', String(512))
-)
-
-
-# Define a mapped class for each Table object so we can use SQLAInterface.
-
-
-class Workshop_Department(Model):
-    __table__ = t_workshop_department
-
-
-class Workshop_Room(Model):
-    __table__ = t_workshop_room
-
-
-class Volunteer_College(Model):
-    __table__ = t_volunteer_college
-
-
-class Event_Schedule(Model):
-    __table__ = t_event_schedule
