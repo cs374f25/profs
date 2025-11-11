@@ -15,17 +15,20 @@ except:
     DSN = "host=localhost user=profs dbname=profs"
 
 
-def new_proposer_workshop(email, title):
-    with psycopg.connect(DSN) as conn:
-        with conn.cursor() as cur:
-            cur.execute("""INSERT INTO person (email, type, first_name, last_name, department_code )
-                        VALUES (%s, 'Faculty', 'first', 'last', 'CS')""",
-                        (email,))
-            cur.execute("INSERT INTO workshop (state, title, event_year) values ('Proposed', %s, 2024)", (title,))
-            cur.execute("INSERT INTO person_workshop (person_email, workshop_id, role) values (%s, lastval(), 'Proposer')", (email,))
-            cur.execute("SELECT lastval()")
-            conn.commit()
-            return cur.fetchone()
+# ProposeWorkshop Database functions
+
+def new_proposer_workshop(email, first, last, dept_code, title):
+   with psycopg.connect(DSN) as conn:
+       with conn.cursor() as cur:
+           cur.execute("""INSERT INTO person (email, type, first_name, last_name, department_code )
+                       VALUES (%s, 'Faculty', %s, %s, %s)""",
+                       (email, first, last, dept_code))
+           cur.execute("INSERT INTO workshop (state, title, event_year) values ('Proposed', %s, 2024)", (title,))
+           cur.execute("INSERT INTO person_workshop (person_email, workshop_id, role) values (%s, lastval(), 'Proposer')", (email,))
+           cur.execute("SELECT lastval()")
+           conn.commit()
+           return cur.fetchone()[0]
+
 
 def returning_proposer_workshop(email, title):
     with psycopg.connect(DSN) as conn:
@@ -35,7 +38,9 @@ def returning_proposer_workshop(email, title):
             cur.execute("INSERT INTO person_workshop (person_email, workshop_id, role) values (%s, lastval(), 'Proposer')", (email,))
             cur.execute("SELECT lastval()")
             conn.commit()
-            return cur.fetchone()
+            return cur.fetchone()[0]
+
+# ProposeWorkshop Forms
 
 class ReturningProposerForm(DynamicForm):
     field1 = StringField(('Email'),
@@ -45,7 +50,26 @@ class ReturningProposerForm(DynamicForm):
         description=('Enter the workshop name.'),
         validators = [InputRequired()], widget=BS3TextFieldWidget())
 
-class ReturningFormView(SimpleFormView):
+class NewProposerForm(DynamicForm):
+   f_email = StringField(('Email'),
+       description=('Enter your email.'),
+       validators = [InputRequired(), Email()], widget=BS3TextFieldWidget())
+   f_first = StringField(('First Name'),
+       description=('Enter your first name.'),
+       validators = [InputRequired()], widget=BS3TextFieldWidget())
+   f_last = StringField(('Last Name'),
+       description=('Enter your last name.'),
+       validators = [InputRequired()], widget=BS3TextFieldWidget())
+   f_dept = StringField(('Department Code'),
+       description=('Enter your department code.'),
+       validators = [InputRequired()], widget=BS3TextFieldWidget())
+   f_wkshop = StringField(('Workshop name'),
+       description=('Enter the workshop name.'),
+       validators = [InputRequired()], widget=BS3TextFieldWidget())
+
+# ProposeWorkshop FormViews
+
+class ReturningProposerFormView(SimpleFormView):
     form = ReturningProposerForm
     form_title = 'Propose a workshop (returning faculty)'
 
@@ -56,8 +80,19 @@ class ReturningFormView(SimpleFormView):
         # post process form
         id = returning_proposer_workshop(form.field1.data, form.field2.data)
         flash(f'New workshop {form.field2.data} added by {form.field1.data}', 'info')
-        return redirect(f"/workshop/edit/{id[0]}")
+        return redirect(f"/workshop/edit/{id}")
 
+class NewProposerFormView(SimpleFormView):
+   form = NewProposerForm
+   form_title = 'Propose a workshop (faculty new to madiSTEM)'
+
+   def form_post(self, form):
+       # post process form
+       id = new_proposer_workshop(form.f_email.data, form.f_first.data, form.f_last.data, form.f_dept.data, form.f_wkshop.data)
+       flash(f'New workshop {form.f_wkshop.data} added by {form.f_email.data}', 'info')
+       return redirect(f"/workshop/edit/{id}")
+
+# Registration Form
 
 class RegistrationForm(DynamicForm):
     stu_first = StringField(
