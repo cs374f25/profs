@@ -2,7 +2,7 @@
 
 # See https://fontawesome.com/icons for icon names.
 
-from views import base, charts, queries, tables
+from views import base, charts, queries, tables, forms
 
 
 def setup_menu(appbuilder):
@@ -143,3 +143,15 @@ def setup_menu(appbuilder):
     # --------------------------------------------------------------------------
 
     appbuilder.add_view_no_menu(base.AboutView())
+
+    # --------------------------------------------------------------------------
+    # Form Views
+    # --------------------------------------------------------------------------
+
+    appbuilder.add_view(
+        forms.MyFormView,
+        "Propose Workshop",
+        icon="fa-table-list",
+        label='Propose Workshop',
+        category="Forms",
+        category_icon="fa-table-list")
