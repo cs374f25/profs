@@ -151,10 +151,10 @@ def setup_menu(appbuilder):
     # --------------------------------------------------------------------------
 
     appbuilder.add_view(
-        forms.MyFormView,
+        forms.ReturningFormView,
         "Propose Workshop",
         icon="fa-table-list",
-        label="Propose Workshop",
+        label="Propose Workshop (returning faculty)",
         category="Forms",
         category_icon="fa-table-list",
     )
