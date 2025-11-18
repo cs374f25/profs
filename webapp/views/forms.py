@@ -1,98 +1,150 @@
-from flask import flash, redirect, url_for
-from flask_appbuilder import SimpleFormView, PublicFormView, expose
-from wtforms import BooleanField, StringField, IntegerField, TextAreaField, SelectField
-from wtforms.validators import Email, InputRequired, Regexp, Length
-from flask_appbuilder.forms import DynamicForm
+from flask import flash, redirect
+from flask_appbuilder import PublicFormView, SimpleFormView
 from flask_appbuilder.fieldwidgets import BS3TextFieldWidget, Select2Widget
-
-import psycopg
-import socket
-
-try:
-    socket.gethostbyname("data.cs.jmu.edu")
-    DSN = "host=data.cs.jmu.edu user=profs dbname=profs"
-except:
-    DSN = "host=localhost user=profs dbname=profs"
+from flask_appbuilder.forms import DynamicForm
+from models.tables import Person, PersonWorkshop, Workshop
+from wtforms import SelectField, StringField, ValidationError
+from wtforms.validators import Email, InputRequired, Length, Regexp
 
 
-# ProposeWorkshop Database functions
+# ------------------------------------------------------------------------------
+# Returning Workshop (existing person)
+# ------------------------------------------------------------------------------
 
-def new_proposer_workshop(email, first, last, dept_code, title):
-   with psycopg.connect(DSN) as conn:
-       with conn.cursor() as cur:
-           cur.execute("""INSERT INTO person (email, type, first_name, last_name, department_code )
-                       VALUES (%s, 'Faculty', %s, %s, %s)""",
-                       (email, first, last, dept_code))
-           cur.execute("INSERT INTO workshop (state, title, event_year) values ('Proposed', %s, 2024)", (title,))
-           cur.execute("INSERT INTO person_workshop (person_email, workshop_id, role) values (%s, lastval(), 'Proposer')", (email,))
-           cur.execute("SELECT lastval()")
-           conn.commit()
-           return cur.fetchone()[0]
-
-
-def returning_proposer_workshop(email, title):
-    with psycopg.connect(DSN) as conn:
-        with conn.cursor() as cur:
-            # this is a faculty member who is in the database already
-            cur.execute("INSERT INTO workshop (state, title, event_year) values ('Proposed', %s, 2024)", (title,))
-            cur.execute("INSERT INTO person_workshop (person_email, workshop_id, role) values (%s, lastval(), 'Proposer')", (email,))
-            cur.execute("SELECT lastval()")
-            conn.commit()
-            return cur.fetchone()[0]
-
-# ProposeWorkshop Forms
 
 class ReturningProposerForm(DynamicForm):
-    field1 = StringField(('Email'),
-        description=('Enter your email.'),
-        validators = [InputRequired(), Email()], widget=BS3TextFieldWidget())
-    field2 = StringField(('Workshop name'),
-        description=('Enter the workshop name.'),
-        validators = [InputRequired()], widget=BS3TextFieldWidget())
+    email = StringField(
+        ("Email"),
+        description=("Enter your email."),
+        validators=[InputRequired(), Email()],
+        widget=BS3TextFieldWidget(),
+    )
+    title = StringField(
+        ("Workshop name"),
+        description=("Enter the workshop name."),
+        validators=[InputRequired()],
+        widget=BS3TextFieldWidget(),
+    )
 
-class NewProposerForm(DynamicForm):
-   f_email = StringField(('Email'),
-       description=('Enter your email.'),
-       validators = [InputRequired(), Email()], widget=BS3TextFieldWidget())
-   f_first = StringField(('First Name'),
-       description=('Enter your first name.'),
-       validators = [InputRequired()], widget=BS3TextFieldWidget())
-   f_last = StringField(('Last Name'),
-       description=('Enter your last name.'),
-       validators = [InputRequired()], widget=BS3TextFieldWidget())
-   f_dept = StringField(('Department Code'),
-       description=('Enter your department code.'),
-       validators = [InputRequired()], widget=BS3TextFieldWidget())
-   f_wkshop = StringField(('Workshop name'),
-       description=('Enter the workshop name.'),
-       validators = [InputRequired()], widget=BS3TextFieldWidget())
+    def validate_email(self, field):
+        """Make sure the email exists when the form is submitted."""
+        from app import db
 
-# ProposeWorkshop FormViews
+        person = db.session.get(Person, field.data)
+        if person is None:
+            raise ValidationError("No person with that email exists.")
+
 
 class ReturningProposerFormView(SimpleFormView):
     form = ReturningProposerForm
-    form_title = 'Propose a workshop (returning faculty)'
-
-    # def form_get(self, form):
-    #     form.field1.data = 'prefilled'
+    form_title = "Propose a workshop (returning faculty)"
 
     def form_post(self, form):
-        # post process form
-        id = returning_proposer_workshop(form.field1.data, form.field2.data)
-        flash(f'New workshop {form.field2.data} added by {form.field1.data}', 'info')
-        return redirect(f"/workshop/edit/{id}")
+        from app import db
+
+        email = form.email.data
+        title = form.title.data
+
+        # Create the workshop
+        workshop = Workshop(
+            state="Proposed",
+            title=title,
+            event_year=2024,
+        )
+        db.session.add(workshop)
+        db.session.flush()  # Sets workshop.id
+
+        # Create the person_workshop
+        link = PersonWorkshop(
+            person_email=email,
+            workshop_id=workshop.id,
+            role="Proposer",
+        )
+        db.session.add(link)
+        db.session.commit()
+
+        # Redirect to the workshop edit form
+        flash(f"New workshop {form.title.data} added by {form.email.data}", "info")
+        return redirect(f"/workshop/edit/{workshop.id}")
+
+
+# ------------------------------------------------------------------------------
+# New Workshop (create new person)
+# ------------------------------------------------------------------------------
+
+
+class NewProposerForm(DynamicForm):
+    email = StringField(
+        ("Email"),
+        description=("Enter your email."),
+        validators=[InputRequired(), Email()],
+        widget=BS3TextFieldWidget(),
+    )
+    first_name = StringField(
+        ("First Name"),
+        description=("Enter your first name."),
+        validators=[InputRequired()],
+        widget=BS3TextFieldWidget(),
+    )
+    last_name = StringField(
+        ("Last Name"),
+        description=("Enter your last name."),
+        validators=[InputRequired()],
+        widget=BS3TextFieldWidget(),
+    )
+    department_code = StringField(
+        ("Department Code"),
+        description=("Enter your department code."),
+        validators=[InputRequired()],
+        widget=BS3TextFieldWidget(),
+    )
+    title = StringField(
+        ("Workshop name"),
+        description=("Enter the workshop name."),
+        validators=[InputRequired()],
+        widget=BS3TextFieldWidget(),
+    )
+
 
 class NewProposerFormView(SimpleFormView):
-   form = NewProposerForm
-   form_title = 'Propose a workshop (faculty new to madiSTEM)'
+    form = NewProposerForm
+    form_title = "Propose a workshop (faculty new to madiSTEM)"
 
-   def form_post(self, form):
-       # post process form
-       id = new_proposer_workshop(form.f_email.data, form.f_first.data, form.f_last.data, form.f_dept.data, form.f_wkshop.data)
-       flash(f'New workshop {form.f_wkshop.data} added by {form.f_email.data}', 'info')
-       return redirect(f"/workshop/edit/{id}")
+    def form_post(self, form):
+        from app import db
 
-# Registration Form
+        # Create the person
+        person = Person(type="Faculty")
+        form.populate_obj(person)
+        db.session.add(person)
+
+        # Create the workshop
+        workshop = Workshop(
+            state="Proposed",
+            title=form.title.data,
+            event_year=2024,
+        )
+        db.session.add(workshop)
+        db.session.flush()  # Sets workshop.id
+
+        # Create the person_workshop
+        link = PersonWorkshop(
+            person_email=person.email,
+            workshop_id=workshop.id,
+            role="Proposer",
+        )
+        db.session.add(link)
+        db.session.commit()
+
+        # Redirect to the workshop edit form
+        flash(f"New workshop {form.title.data} added by {form.email.data}", "info")
+        return redirect(f"/workshop/edit/{workshop.id}")
+
+
+# ------------------------------------------------------------------------------
+# Registration Form (public)
+# ------------------------------------------------------------------------------
+
 
 class RegistrationForm(DynamicForm):
     stu_first = StringField(
