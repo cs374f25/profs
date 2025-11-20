@@ -2,13 +2,13 @@
 
 from flask import Flask
 from flask_appbuilder import AppBuilder, IndexView
-from flask_appbuilder.utils.legacy import get_sqla_class
+from flask_sqlalchemy import SQLAlchemy
 from menu import setup_menu
 
 class MyIndexView(IndexView):
     index_template = "index.jinja"
 
-db = get_sqla_class()()
+db = SQLAlchemy()
 appbuilder = AppBuilder(indexview=MyIndexView)
 
 def create_app():
