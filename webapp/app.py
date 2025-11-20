@@ -6,15 +6,18 @@ from flask_appbuilder.utils.legacy import get_sqla_class
 from menu import setup_menu
 
 class MyIndexView(IndexView):
-    index_template = 'index.jinja'
-
-app = Flask(__name__)
-app.config.from_object("config")
+    index_template = "index.jinja"
 
 db = get_sqla_class()()
 appbuilder = AppBuilder(indexview=MyIndexView)
 
-with app.app_context():
-    db.init_app(app)
-    appbuilder.init_app(app, db.session)  # type: ignore
-    setup_menu(appbuilder)
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object("config")
+
+    with app.app_context():
+        db.init_app(app)
+        appbuilder.init_app(app, db.session)  # type: ignore
+        setup_menu(appbuilder)
+
+    return app

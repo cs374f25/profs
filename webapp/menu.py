@@ -1,11 +1,11 @@
-"""Flask-AppBuilder views that provide CRUD web interfaces for the models."""
+"""Register all views and build the application menu."""
 
 # See https://fontawesome.com/icons for icon names.
 
-from views import base, charts, forms, queries, tables
-
 
 def setup_menu(appbuilder):
+
+    from views import base, charts, forms, queries, tables
 
     # --------------------------------------------------------------------------
     # Tables Menu (in an order that makes sense for the GUI)
