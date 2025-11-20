@@ -1,3 +1,6 @@
+"""Forms and FormViews that implement custom features."""
+
+from app import db
 from flask import flash, redirect
 from flask_appbuilder import PublicFormView, SimpleFormView
 from flask_appbuilder.fieldwidgets import BS3TextFieldWidget, Select2Widget
@@ -28,8 +31,6 @@ class ReturningProposerForm(DynamicForm):
 
     def validate_email(self, field):
         """Make sure the email exists when the form is submitted."""
-        from app import db
-
         person = db.session.get(Person, field.data)
         if person is None:
             raise ValidationError("No person with that email exists.")
@@ -40,8 +41,6 @@ class ReturningProposerFormView(SimpleFormView):
     form_title = "Propose a workshop (returning faculty)"
 
     def form_post(self, form):
-        from app import db
-
         email = form.email.data
         title = form.title.data
 
@@ -111,8 +110,6 @@ class NewProposerFormView(SimpleFormView):
     form_title = "Propose a workshop (faculty new to madiSTEM)"
 
     def form_post(self, form):
-        from app import db
-
         # Create the person
         person = Person(type="Faculty")
         form.populate_obj(person)

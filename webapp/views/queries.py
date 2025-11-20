@@ -1,4 +1,4 @@
-"""Flask-AppBuilder views that provide CRUD web interfaces for the models."""
+"""Read-only views for showing query results."""
 
 from flask_appbuilder import ModelView
 from flask_appbuilder.models.sqla.interface import SQLAInterface
